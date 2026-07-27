@@ -1,3 +1,4 @@
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N5S723Z8RP)
 # Tabletop token builder
 
 Create neat tokens for virtual tabletop tools like Roll20
