@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { OutlineColor, OutlineWidth, Scale } from './controls/Control'
+import { OutlineColor, OutlineWidth, Scale } from './components/Control'
+import { extractClipboardImages } from './service/clipboard'
+import { Editor } from './components/Editor'
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [image, setImage] = useState<HTMLImageElement | null>(null)
+  const [images, setImages] = useState<HTMLImageElement[] | null>(null)
   const [dragging, setDragging] = useState(false)
 
   const [outlineWidth, setOutlineWidth] = useState(10)
@@ -16,7 +18,7 @@ function App() {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
-    if (!ctx || !image) return
+    if (!ctx || !images) return
 
     const radius = Math.min(canvas.width, canvas.height) / 2;
     ctx.beginPath();
@@ -24,7 +26,7 @@ function App() {
     ctx.clip();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.drawImage(image, offset.x, offset.y, image.width * scale, image.height * scale)
+    ctx.drawImage(images[0], offset.x, offset.y, images[0].width * scale, images[0].height * scale)
 
     ctx.strokeStyle = outlineColor
     ctx.lineWidth = outlineWidth
@@ -35,7 +37,7 @@ function App() {
 
   useEffect(() => {
     drawImage()
-  }, [scale, offset, outlineColor, outlineWidth, image])
+  }, [scale, offset, outlineColor, outlineWidth, images])
 
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
@@ -43,21 +45,11 @@ function App() {
 
       if (!items) return
 
-      for (const item of items) {
-        console.log(item)
-        // Check if the item is an image
-        if (item.type.indexOf('image') !== -1) {
-          const blob = item.getAsFile()
-          if (blob) {
-            const img = new Image()
-            img.src = URL.createObjectURL(blob)
-            img.onload = () => {
-              setImage(img)
-            }
-            break
-          }
+      extractClipboardImages(items).then(validImages => {
+        if (validImages.length > 0) {
+          setImages(validImages)
         }
-      }
+      })
 
     }
 
@@ -85,20 +77,37 @@ function App() {
     link.click()
   }
 
-  if (!image) {
-    return <div className="App">Paste an image from your clipboard using Ctrl+V to get started.</div>
+  if (!images) {
+    return (
+      <div className="start-screen">
+        <div className="start-panel">Paste an image from your clipboard using Ctrl+V to get started.</div>
+        <div className="start-separator"><span>OR</span></div>
+        <div className="start-panel">Drag one or more images here from your computer.</div>
+      </div>
+    )
+  }
+
+  if (images.length === 1) {
+    return (
+      <div className="editor">
+        <div className="controls">
+          <Scale value={scale} onChange={setScale} />
+          <OutlineWidth value={outlineWidth} onChange={setOutlineWidth} />
+          <OutlineColor value={outlineColor} onChange={setOutlineColor} />
+          <div><p>You can paste another image without losing these settings</p><p>Use the mouse to drag the image around</p></div>
+          <button onClick={saveImageToFile}>Save Image</button>
+        </div>
+        <canvas id="canvas" width={500} height={500} ref={canvasRef} onMouseMove={canvasMouseDrag} onMouseDown={() => setDragging(true)} onMouseUp={() => setDragging(false)}></canvas>
+      </div>
+    )
   }
 
   return (
     <div className="editor">
-      <div className="controls">
-        <Scale value={scale} onChange={setScale} />
-        <OutlineWidth value={outlineWidth} onChange={setOutlineWidth} />
-        <OutlineColor value={outlineColor} onChange={setOutlineColor} />
-        <div><p>You can paste another image without losing these settings</p><p>Use the mouse to drag the image around</p></div>
-        <button onClick={saveImageToFile}>Save Image</button>
-      </div>
-      <canvas id="canvas" width={500} height={500} ref={canvasRef} onMouseMove={canvasMouseDrag} onMouseDown={() => setDragging(true)} onMouseUp={() => setDragging(false)}></canvas>
+      <div className="controls"></div>
+      {images.map((image, index) => (
+        <Editor key={index} image={image} />
+      ))}
     </div>
   )
 }
