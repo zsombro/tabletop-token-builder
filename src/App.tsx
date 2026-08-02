@@ -1,6 +1,7 @@
 import { createRef, useEffect, useRef, useState } from 'react'
 import './App.css'
-import { Offset, OutlineColor, OutlineWidth, Scale } from './components/Control'
+import { OutlineColor, OutlineWidth, Scale } from './components/Control'
+import { XYPad } from './components/XYPad'
 import { extractClipboardImages } from './util/clipboard'
 import { Editor } from './components/Editor'
 import type { EditorHandle } from './components/Editor'
@@ -65,8 +66,8 @@ function App() {
   }
 
   function handleGlobalOffsetChange(newOffset: { x: number; y: number }) {
-    setOffset(newOffset)
-    applyToSelected('offset', newOffset)
+    setOffset({ x: newOffset.x * 2, y: newOffset.y * 2})
+    applyToSelected('offset', { x: newOffset.x * 2, y: newOffset.y * 2})
   }
 
   function handleSelectAll() {
@@ -157,7 +158,7 @@ function App() {
       <div className="controls">
         <div className="settings">
           <Scale value={scale} onChange={handleScaleChange} />
-          <Offset onChange={handleGlobalOffsetChange} />
+          <XYPad onChange={handleGlobalOffsetChange} />
           <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
           <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
         </div>
