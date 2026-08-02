@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { OutlineColor, OutlineWidth, Scale } from './components/Control'
+import { Offset, OutlineColor, OutlineWidth, Scale } from './components/Control'
 import { extractClipboardImages } from './util/clipboard'
 import { Editor } from './components/Editor'
 import type { TokenImage } from './types'
@@ -11,8 +11,7 @@ function App() {
   const [outlineWidth, setOutlineWidth] = useState(10)
   const [outlineColor, setOutlineColor] = useState('#000000')
   const [scale, setScale] = useState(0.5)
-  // _setOffset: setter reserved for when the offset UI control is added
-  const [offset, _setOffset] = useState({ x: 0, y: 0 })
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
 
   // Keeps the latest defaults accessible inside the stable event-listener closure
   const defaults = useRef({ scale, offset, outlineWidth, outlineColor })
@@ -51,6 +50,11 @@ function App() {
     setTokenImages(prev => prev && prev.map(ti =>
       ti.id === id ? { ...ti, settings: { ...ti.settings, offset: newOffset } } : ti
     ))
+  }
+
+  function handleGlobalOffsetChange(newOffset: { x: number; y: number }) {
+    setOffset(newOffset)
+    applyToSelected('offset', newOffset)
   }
 
   useEffect(() => {
@@ -108,6 +112,7 @@ function App() {
     <div className="editor">
       <div className="controls">
         <Scale value={scale} onChange={handleScaleChange} />
+        <Offset onChange={handleGlobalOffsetChange} />
         <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
         <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
         <div><p>You can paste another image without losing these settings</p><p>Use the mouse to drag the image around</p></div>

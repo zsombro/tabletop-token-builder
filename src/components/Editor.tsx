@@ -14,6 +14,10 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorPro
   const { scale, offset, outlineWidth, outlineColor } = tokenImage.settings
   const [localOffset, setLocalOffset] = useState(offset)
 
+  useEffect(() => {
+    if (!dragging) setLocalOffset(offset)
+  }, [offset, dragging])
+
   // As recommended by the official Roll20 docs
   // https://roll20partners.zendesk.com/hc/en-us/articles/10828203014423-Image-Dimensions-Resolution-and-File-Type-Specifications#h_01H910BV0VJ2X9PWCPZSF179GH
   const TOKEN_SIZE = 280
@@ -33,15 +37,6 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorPro
     }))
   }
 
-  function saveImageToFile() {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const link = document.createElement('a')
-    link.download = 'avatar.png'
-    link.href = canvas.toDataURL()
-    link.click()
-  }
-
   return (<>
     <input type="checkbox" checked={tokenImage.selected} onChange={onToggleSelect} />
     <canvas
@@ -54,6 +49,5 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorPro
       onMouseLeave={() => { setDragging(false); onOffsetChange(localOffset) }}
       onMouseMove={canvasMouseDrag}
     ></canvas>
-    {/* <button onClick={saveImageToFile}>Save Image</button> */}
   </>)
 }

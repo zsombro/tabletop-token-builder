@@ -83,3 +83,11 @@
   border-radius: 8px;
   height: 64px;
 }
+
+.offset-pad {
+  width: 40px;
+  height: 40px;
+  background-color: #3a3a3a;
+  border-radius: 4px;
+  cursor: grab;
+}
