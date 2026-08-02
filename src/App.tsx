@@ -67,6 +67,14 @@ function App() {
     applyToSelected('offset', newOffset)
   }
 
+  function handleSelectAll() {
+    setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: true })))
+  }
+
+  function handleUnselectAll() {
+    setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: false })))
+  }
+
   useEffect(() => {
     function wrapImages(validImages: HTMLImageElement[]): TokenImage[] {
       const settings = globalSettingsRef.current
@@ -127,6 +135,8 @@ function App() {
   return (
     <div className="editor">
       <div className="controls">
+        <button onClick={handleSelectAll}>Select all</button>
+        <button onClick={handleUnselectAll}>Unselect all</button>
         <Scale value={scale} onChange={handleScaleChange} />
         <Offset onChange={handleGlobalOffsetChange} />
         <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
