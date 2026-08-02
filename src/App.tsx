@@ -2,30 +2,73 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { OutlineColor, OutlineWidth, Scale } from './components/Control'
 import { extractClipboardImages } from './util/clipboard'
-import { drawImage } from './util/canvas'
 import { Editor } from './components/Editor'
+import type { TokenImage } from './types'
 
 function App() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [images, setImages] = useState<HTMLImageElement[] | null>(null)
+  const [tokenImages, setTokenImages] = useState<TokenImage[] | null>(null)
 
   const [outlineWidth, setOutlineWidth] = useState(10)
   const [outlineColor, setOutlineColor] = useState('#000000')
   const [scale, setScale] = useState(0.5)
-  const [offset] = useState({ x: 0, y: 0 })
+  // _setOffset: setter reserved for when the offset UI control is added
+  const [offset, _setOffset] = useState({ x: 0, y: 0 })
+
+  // Keeps the latest defaults accessible inside the stable event-listener closure
+  const defaults = useRef({ scale, offset, outlineWidth, outlineColor })
+  useEffect(() => {
+    defaults.current = { scale, offset, outlineWidth, outlineColor }
+  }, [scale, offset, outlineWidth, outlineColor])
+
+  function applyToSelected<K extends keyof TokenImage['settings']>(key: K, value: TokenImage['settings'][K]) {
+    setTokenImages(prev => prev && prev.map(ti =>
+      ti.selected ? { ...ti, settings: { ...ti.settings, [key]: value } } : ti
+    ))
+  }
+
+  function handleScaleChange(value: number) {
+    setScale(value)
+    applyToSelected('scale', value)
+  }
+
+  function handleOutlineWidthChange(value: number) {
+    setOutlineWidth(value)
+    applyToSelected('outlineWidth', value)
+  }
+
+  function handleOutlineColorChange(value: string) {
+    setOutlineColor(value)
+    applyToSelected('outlineColor', value)
+  }
+
+  function handleToggleSelect(id: string) {
+    setTokenImages(prev => prev && prev.map(ti =>
+      ti.id === id ? { ...ti, selected: !ti.selected } : ti
+    ))
+  }
+
+  function handleOffsetChange(id: string, newOffset: { x: number; y: number }) {
+    setTokenImages(prev => prev && prev.map(ti =>
+      ti.id === id ? { ...ti, settings: { ...ti.settings, offset: newOffset } } : ti
+    ))
+  }
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !images) return
-    drawImage(canvas, images[0], offset, scale, outlineColor, outlineWidth)
-  }, [scale, offset, outlineColor, outlineWidth, images])
+    function wrapImages(validImages: HTMLImageElement[]): TokenImage[] {
+      return validImages.map(image => ({
+        id: crypto.randomUUID(),
+        image,
+        selected: true,
+        settings: { ...defaults.current }
+      }))
+    }
 
-  useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items
       if (!items) return
       extractClipboardImages(items).then(validImages => {
-        if (validImages.length > 0) setImages(prevImages => [...(prevImages || []), ...validImages])
+        if (validImages.length > 0)
+          setTokenImages(prev => [...(prev || []), ...wrapImages(validImages)])
       })
     }
 
@@ -36,7 +79,8 @@ function App() {
       const items = e.dataTransfer?.items
       if (!items) return
       extractClipboardImages(items).then(validImages => {
-        if (validImages.length > 0) setImages(prevImages => [...(prevImages || []), ...validImages])
+        if (validImages.length > 0)
+          setTokenImages(prev => [...(prev || []), ...wrapImages(validImages)])
       })
     }
 
@@ -50,17 +94,7 @@ function App() {
     }
   }, [])
 
-  function saveImageToFile() {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const link = document.createElement('a')
-    link.download = 'avatar.png'
-    link.href = canvas.toDataURL()
-    link.click()
-  }
-
-  if (!images) {
+  if (!tokenImages) {
     return (
       <div className="start-screen">
         <div className="start-panel">Paste an image from your clipboard using Ctrl+V to get started.</div>
@@ -73,23 +107,18 @@ function App() {
   return (
     <div className="editor">
       <div className="controls">
-        <Scale value={scale} onChange={setScale} />
-        <OutlineWidth value={outlineWidth} onChange={setOutlineWidth} />
-        <OutlineColor value={outlineColor} onChange={setOutlineColor} />
+        <Scale value={scale} onChange={handleScaleChange} />
+        <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
+        <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
         <div><p>You can paste another image without losing these settings</p><p>Use the mouse to drag the image around</p></div>
-        <button onClick={saveImageToFile}>Save Image</button>
       </div>
       <div className="image-list">
-        {images.map((image, index) => (
+        {tokenImages.map(tokenImage => (
           <Editor
-            key={`${image.src}-${index}`}
-            image={image}
-            tokenSettings={{
-              scale,
-              offset,
-              outlineWidth,
-              outlineColor
-            }}
+            key={tokenImage.id}
+            tokenImage={tokenImage}
+            onToggleSelect={() => handleToggleSelect(tokenImage.id)}
+            onOffsetChange={newOffset => handleOffsetChange(tokenImage.id, newOffset)}
           />
         ))}
       </div>
