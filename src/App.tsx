@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { createRef, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { Offset, OutlineColor, OutlineWidth, Scale } from './components/Control'
 import { extractClipboardImages } from './util/clipboard'
 import { Editor } from './components/Editor'
+import type { EditorHandle } from './components/Editor'
+import { saveAllToZip } from './util/canvas'
 import type { TokenImage, TokenSettings } from './types'
 
 function App() {
@@ -75,6 +77,24 @@ function App() {
     setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: false })))
   }
 
+  const editorRefs = useRef(new Map<string, React.RefObject<EditorHandle | null>>())
+
+  function getEditorRef(id: string) {
+    if (!editorRefs.current.has(id)) editorRefs.current.set(id, createRef<EditorHandle>())
+    return editorRefs.current.get(id)!
+  }
+
+  async function handleSaveAll() {
+    if (!tokenImages) return
+    const entries = await Promise.all(
+      tokenImages.map(async ti => {
+        const blob = await editorRefs.current.get(ti.id)?.current?.getBlob()
+        return blob ? { filename: `token-${ti.id}.png`, blob } : null
+      })
+    )
+    await saveAllToZip(entries.filter(e => e !== null))
+  }
+
   useEffect(() => {
     function wrapImages(validImages: HTMLImageElement[]): TokenImage[] {
       const settings = globalSettingsRef.current
@@ -137,6 +157,7 @@ function App() {
       <div className="controls">
         <button onClick={handleSelectAll}>Select all</button>
         <button onClick={handleUnselectAll}>Unselect all</button>
+        <button onClick={handleSaveAll}>Save all</button>
         <Scale value={scale} onChange={handleScaleChange} />
         <Offset onChange={handleGlobalOffsetChange} />
         <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
@@ -146,6 +167,7 @@ function App() {
         {tokenImages.map(tokenImage => (
           <Editor
             key={tokenImage.id}
+            ref={getEditorRef(tokenImage.id)}
             tokenImage={tokenImage}
             onToggleSelect={() => handleToggleSelect(tokenImage.id)}
             onOffsetChange={newOffset => handleOffsetChange(tokenImage.id, newOffset)}

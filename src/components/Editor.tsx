@@ -1,16 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
-import { drawImage } from '../util/canvas'
+import { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { canvasToBlob, drawImage, saveToImageFile } from '../util/canvas'
 import type { TokenImage } from '../types'
+
+export type EditorHandle = { getBlob: () => Promise<Blob | null> }
 
 export type EditorProps = {
   tokenImage: TokenImage
   onToggleSelect: () => void
   onOffsetChange: (offset: { x: number; y: number }) => void
+  ref?: React.Ref<EditorHandle | null>
 }
 
-export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorProps) {
+export function Editor({ tokenImage, onToggleSelect, onOffsetChange, ref }: EditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useImperativeHandle(ref, () => ({ getBlob: () => canvasToBlob(canvasRef.current!) }))
   const { scale, offset, outlineWidth, outlineColor } = tokenImage.settings
   const [localOffset, setLocalOffset] = useState(offset)
 
@@ -37,6 +43,13 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorPro
     }))
   }
 
+  function handleSave() {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    saveToImageFile(canvas, `token-${tokenImage.id}.png`)
+    setMenuOpen(false)
+  }
+
   return (
     <div className="editor-card">
       <div className="editor-card-header">
@@ -44,7 +57,14 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorPro
           <input type="checkbox" checked={tokenImage.selected} onChange={onToggleSelect} />
           <span />
         </label>
-        <button className="editor-card-menu" aria-label="Options">⋮</button>
+        <div className="editor-card-menu-wrapper">
+          <button className="editor-card-menu" aria-label="Options" onClick={() => setMenuOpen(!menuOpen)}>⋮</button>
+          {menuOpen && (
+            <div className="editor-card-dropdown">
+              <button className="editor-card-dropdown-item" onClick={handleSave}>Save</button>
+            </div>
+          )}
+        </div>
       </div>
       <canvas
         ref={canvasRef}
