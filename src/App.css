@@ -64,10 +64,10 @@
 .image-list {
   display: flex;
   flex-flow: row wrap;
-  gap: 1rem;
-  justify-content: center;
+  gap: 0.5rem;
+  align-content: flex-start;
   grid-row: 2;
-  padding: 1rem;
+  padding: 0.5rem;
   overflow-y: auto;
 }
 
@@ -176,6 +176,9 @@
   background-color: #505050;
   border-radius: 8px;
   padding: 0.5rem;
+  width: calc(280px / 2 + 1rem);
+  height: calc(280px / 2 + 4px + 2.7rem);
+  box-sizing: border-box;
 }
 
 .editor-card-add-more {

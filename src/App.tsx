@@ -66,8 +66,9 @@ function App() {
   }
 
   function handleGlobalOffsetChange(newOffset: { x: number; y: number }) {
-    setOffset({ x: newOffset.x * 2, y: newOffset.y * 2})
-    applyToSelected('offset', { x: newOffset.x * 2, y: newOffset.y * 2})
+    const scaledOffset = { x: newOffset.x * 2, y: newOffset.y * 2 }
+    setOffset(scaledOffset)
+    applyToSelected('offset', scaledOffset)
   }
 
   function handleSelectAll() {
