@@ -37,17 +37,25 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange }: EditorPro
     }))
   }
 
-  return (<>
-    <input type="checkbox" checked={tokenImage.selected} onChange={onToggleSelect} />
-    <canvas
-      ref={canvasRef}
-      width={TOKEN_SIZE}
-      height={TOKEN_SIZE}
-      style={{ width: TOKEN_SIZE / 2, height: TOKEN_SIZE / 2 }}
-      onMouseDown={() => setDragging(true)}
-      onMouseUp={() => { setDragging(false); onOffsetChange(localOffset) }}
-      onMouseLeave={() => { setDragging(false); onOffsetChange(localOffset) }}
-      onMouseMove={canvasMouseDrag}
-    ></canvas>
-  </>)
+  return (
+    <div className="editor-card">
+      <div className="editor-card-header">
+        <label className="editor-card-checkbox">
+          <input type="checkbox" checked={tokenImage.selected} onChange={onToggleSelect} />
+          <span />
+        </label>
+        <button className="editor-card-menu" aria-label="Options">⋮</button>
+      </div>
+      <canvas
+        ref={canvasRef}
+        width={TOKEN_SIZE}
+        height={TOKEN_SIZE}
+        style={{ width: TOKEN_SIZE / 2, height: TOKEN_SIZE / 2 }}
+        onMouseDown={() => setDragging(true)}
+        onMouseUp={() => { setDragging(false); onOffsetChange(localOffset) }}
+        onMouseLeave={() => { setDragging(false); onOffsetChange(localOffset) }}
+        onMouseMove={canvasMouseDrag}
+      ></canvas>
+    </div>
+  )
 }

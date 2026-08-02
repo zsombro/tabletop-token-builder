@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import { Offset, OutlineColor, OutlineWidth, Scale } from './components/Control'
 import { extractClipboardImages } from './util/clipboard'
@@ -12,12 +12,6 @@ function App() {
   const [outlineColor, setOutlineColor] = useState('#000000')
   const [scale, setScale] = useState(0.5)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
-
-  // Keeps the latest defaults accessible inside the stable event-listener closure
-  const defaults = useRef({ scale, offset, outlineWidth, outlineColor })
-  useEffect(() => {
-    defaults.current = { scale, offset, outlineWidth, outlineColor }
-  }, [scale, offset, outlineWidth, outlineColor])
 
   function applyToSelected<K extends keyof TokenImage['settings']>(key: K, value: TokenImage['settings'][K]) {
     setTokenImages(prev => prev && prev.map(ti =>
@@ -63,7 +57,12 @@ function App() {
         id: crypto.randomUUID(),
         image,
         selected: true,
-        settings: { ...defaults.current }
+        settings: {
+          scale: scale,
+          offset: offset,
+          outlineWidth: outlineWidth,
+          outlineColor: outlineColor
+        }
       }))
     }
 
@@ -101,9 +100,9 @@ function App() {
   if (!tokenImages) {
     return (
       <div className="start-screen">
-        <div className="start-panel">Paste an image from your clipboard using Ctrl+V to get started.</div>
+        <div className="start-panel">Paste an image from your clipboard using Ctrl+V</div>
         <div className="start-separator"><span>OR</span></div>
-        <div className="start-panel">Drag one or more images here from your computer.</div>
+        <div className="start-panel">Drag one or more images here from your computer</div>
       </div>
     )
   }
@@ -115,7 +114,6 @@ function App() {
         <Offset onChange={handleGlobalOffsetChange} />
         <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
         <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
-        <div><p>You can paste another image without losing these settings</p><p>Use the mouse to drag the image around</p></div>
       </div>
       <div className="image-list">
         {tokenImages.map(tokenImage => (
@@ -126,6 +124,7 @@ function App() {
             onOffsetChange={newOffset => handleOffsetChange(tokenImage.id, newOffset)}
           />
         ))}
+        <div className="editor-card-add-more">Paste or drag more images</div>
       </div>
     </div>
   )
