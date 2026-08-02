@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { Offset, OutlineColor, OutlineWidth, Scale } from './components/Control'
 import { extractClipboardImages } from './util/clipboard'
 import { Editor } from './components/Editor'
-import type { TokenImage } from './types'
+import type { TokenImage, TokenSettings } from './types'
 
 function App() {
   const [tokenImages, setTokenImages] = useState<TokenImage[] | null>(null)
@@ -12,6 +12,22 @@ function App() {
   const [outlineColor, setOutlineColor] = useState('#000000')
   const [scale, setScale] = useState(0.5)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
+
+  const globalSettingsRef = useRef<TokenSettings>({
+    scale,
+    offset,
+    outlineWidth,
+    outlineColor
+  })
+
+  useEffect(() => {
+    globalSettingsRef.current = {
+      scale,
+      offset,
+      outlineWidth,
+      outlineColor
+    }
+  }, [scale, offset, outlineWidth, outlineColor])
 
   function applyToSelected<K extends keyof TokenImage['settings']>(key: K, value: TokenImage['settings'][K]) {
     setTokenImages(prev => prev && prev.map(ti =>
@@ -53,15 +69,16 @@ function App() {
 
   useEffect(() => {
     function wrapImages(validImages: HTMLImageElement[]): TokenImage[] {
+      const settings = globalSettingsRef.current
       return validImages.map(image => ({
         id: crypto.randomUUID(),
         image,
         selected: true,
         settings: {
-          scale: scale,
-          offset: offset,
-          outlineWidth: outlineWidth,
-          outlineColor: outlineColor
+          scale: settings.scale,
+          offset: settings.offset,
+          outlineWidth: settings.outlineWidth,
+          outlineColor: settings.outlineColor
         }
       }))
     }
