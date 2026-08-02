@@ -7,6 +7,7 @@ import { Editor } from './components/Editor'
 import type { EditorHandle } from './components/Editor'
 import { saveAllToZip } from './util/canvas'
 import type { TokenImage, TokenSettings } from './types'
+import posthog from './lib/posthog'
 
 function App() {
   const [tokenImages, setTokenImages] = useState<TokenImage[] | null>(null)
@@ -41,16 +42,28 @@ function App() {
   function handleScaleChange(value: number) {
     setScale(value)
     applyToSelected('scale', value)
+    posthog.capture('control_changed', {
+      control: 'scale',
+      value,
+    })
   }
 
   function handleOutlineWidthChange(value: number) {
     setOutlineWidth(value)
     applyToSelected('outlineWidth', value)
+    posthog.capture('control_changed', {
+      control: 'outline_width',
+      value,
+    })
   }
 
   function handleOutlineColorChange(value: string) {
     setOutlineColor(value)
     applyToSelected('outlineColor', value)
+    posthog.capture('control_changed', {
+      control: 'outline_color',
+      value,
+    })
   }
 
   function handleToggleSelect(id: string) {
@@ -69,32 +82,54 @@ function App() {
     const scaledOffset = { x: newOffset.x * 2, y: newOffset.y * 2 }
     setOffset(scaledOffset)
     applyToSelected('offset', scaledOffset)
+    posthog.capture('control_changed', {
+      control: 'offset',
+      value: scaledOffset,
+    })
   }
 
   function handleSelectAll() {
     setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: true })))
+    posthog.capture('control_clicked', {
+      control: 'select_all',
+    })
   }
 
   function handleUnselectAll() {
     setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: false })))
+    posthog.capture('control_clicked', {
+      control: 'unselect_all',
+    })
   }
 
-  const editorRefs = useRef(new Map<string, React.RefObject<EditorHandle | null>>())
+  const [editorRefs, setEditorRefs] = useState<Record<string, React.RefObject<EditorHandle | null>>>({})
 
-  function getEditorRef(id: string) {
-    if (!editorRefs.current.has(id)) editorRefs.current.set(id, createRef<EditorHandle>())
-    return editorRefs.current.get(id)!
+  function addEditorRefs(images: TokenImage[]) {
+    setEditorRefs(prev => {
+      const nextRefs = { ...prev }
+
+      for (const image of images) {
+        nextRefs[image.id] ??= createRef<EditorHandle>()
+      }
+
+      return nextRefs
+    })
   }
 
   async function handleSaveAll() {
     if (!tokenImages) return
     const entries = await Promise.all(
       tokenImages.map(async ti => {
-        const blob = await editorRefs.current.get(ti.id)?.current?.getBlob()
+        const blob = await editorRefs[ti.id]?.current?.getBlob()
         return blob ? { filename: `token-${ti.id}.png`, blob } : null
       })
     )
+    const savedTokenCount = entries.filter(e => e !== null).length
     await saveAllToZip(entries.filter(e => e !== null))
+    posthog.capture('control_clicked', {
+      control: 'save_all',
+    })
+    posthog.capture('tokens_saved', { token_count: savedTokenCount })
   }
 
   useEffect(() => {
@@ -117,8 +152,12 @@ function App() {
       const items = e.clipboardData?.items
       if (!items) return
       extractClipboardImages(items).then(validImages => {
-        if (validImages.length > 0)
-          setTokenImages(prev => [...(prev || []), ...wrapImages(validImages)])
+        if (validImages.length > 0) {
+          const wrappedImages = wrapImages(validImages)
+          addEditorRefs(wrappedImages)
+          setTokenImages(prev => [...(prev || []), ...wrappedImages])
+          posthog.capture('images_added', { image_count: validImages.length, source: 'clipboard' })
+        }
       })
     }
 
@@ -129,8 +168,12 @@ function App() {
       const items = e.dataTransfer?.items
       if (!items) return
       extractClipboardImages(items).then(validImages => {
-        if (validImages.length > 0)
-          setTokenImages(prev => [...(prev || []), ...wrapImages(validImages)])
+        if (validImages.length > 0) {
+          const wrappedImages = wrapImages(validImages)
+          addEditorRefs(wrappedImages)
+          setTokenImages(prev => [...(prev || []), ...wrappedImages])
+          posthog.capture('images_added', { image_count: validImages.length, source: 'drag_and_drop' })
+        }
       })
     }
 
@@ -173,7 +216,7 @@ function App() {
         {tokenImages.map(tokenImage => (
           <Editor
             key={tokenImage.id}
-            ref={getEditorRef(tokenImage.id)}
+            ref={editorRefs[tokenImage.id]}
             tokenImage={tokenImage}
             onToggleSelect={() => handleToggleSelect(tokenImage.id)}
             onOffsetChange={newOffset => handleOffsetChange(tokenImage.id, newOffset)}

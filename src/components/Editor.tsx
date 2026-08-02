@@ -1,6 +1,7 @@
 import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { canvasToBlob, drawImage, saveToImageFile } from '../util/canvas'
 import type { TokenImage } from '../types'
+import posthog from '../lib/posthog'
 
 export type EditorHandle = { getBlob: () => Promise<Blob | null> }
 
@@ -47,6 +48,7 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange, ref }: Edit
     const canvas = canvasRef.current
     if (!canvas) return
     saveToImageFile(canvas, `token-${tokenImage.id}.png`)
+    posthog.capture('token_saved')
     setMenuOpen(false)
   }
 
