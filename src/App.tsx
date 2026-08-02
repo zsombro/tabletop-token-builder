@@ -155,13 +155,17 @@ function App() {
   return (
     <div className="editor">
       <div className="controls">
-        <button onClick={handleSelectAll}>Select all</button>
-        <button onClick={handleUnselectAll}>Unselect all</button>
-        <button onClick={handleSaveAll}>Save all</button>
-        <Scale value={scale} onChange={handleScaleChange} />
-        <Offset onChange={handleGlobalOffsetChange} />
-        <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
-        <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
+        <div className="settings">
+          <Scale value={scale} onChange={handleScaleChange} />
+          <Offset onChange={handleGlobalOffsetChange} />
+          <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
+          <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
+        </div>
+        <div className="actions">
+          <button onClick={handleSelectAll}>Select all</button>
+          <button onClick={handleUnselectAll}>Unselect all</button>
+          <button onClick={handleSaveAll}>Save all</button>
+        </div>
       </div>
       <div className="image-list">
         {tokenImages.map(tokenImage => (
