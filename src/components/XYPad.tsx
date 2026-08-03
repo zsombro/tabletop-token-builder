@@ -16,7 +16,7 @@ export function XYPad({ onChange }: { onChange: (offset: { x: number; y: number 
                 className="xy-pad"
                 onMouseDown={() => setDragging(true)}
                 onMouseUp={() => { setDragging(false); onChange(localOffset) }}
-                onMouseLeave={() => { setDragging(false); onChange(localOffset) }}
+                onMouseLeave={() => setDragging(false)}
                 onMouseMove={handleMouseMove}
             >
                 <div
