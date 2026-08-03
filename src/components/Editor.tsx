@@ -72,7 +72,7 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange, ref }: Edit
         ref={canvasRef}
         width={TOKEN_SIZE}
         height={TOKEN_SIZE}
-        style={{ width: TOKEN_SIZE / 2, height: TOKEN_SIZE / 2 }}
+        style={{ width: TOKEN_SIZE / 2, height: TOKEN_SIZE / 2, cursor: dragging ? 'grabbing' : 'grab' }}
         onMouseDown={() => setDragging(true)}
         onMouseUp={() => { setDragging(false); onOffsetChange(localOffset) }}
         onMouseLeave={() => { setDragging(false); onOffsetChange(localOffset) }}
