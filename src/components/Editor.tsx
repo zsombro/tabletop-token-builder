@@ -9,10 +9,11 @@ export type EditorProps = {
   tokenImage: TokenImage
   onToggleSelect: () => void
   onOffsetChange: (offset: { x: number; y: number }) => void
+  onClick?: () => void
   ref?: React.Ref<EditorHandle | null>
 }
 
-export function Editor({ tokenImage, onToggleSelect, onOffsetChange, ref }: EditorProps) {
+export function Editor({ tokenImage, onToggleSelect, onOffsetChange, onClick, ref }: EditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [dragging, setDragging] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -53,10 +54,10 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange, ref }: Edit
   }
 
   return (
-    <div className="editor-card">
+    <div className="editor-card" onClick={e => { e.stopPropagation(); onClick?.() }}>
       <div className="editor-card-header">
         <label className="editor-card-checkbox">
-          <input type="checkbox" checked={tokenImage.selected} onChange={onToggleSelect} />
+          <input type="checkbox" checked={tokenImage.selected} onChange={(e) => {e.stopPropagation();onToggleSelect()}} />
           <span />
         </label>
         <div className="editor-card-menu-wrapper">

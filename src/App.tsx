@@ -42,6 +42,9 @@ function App() {
   function handleScaleChange(value: number) {
     setScale(value)
     applyToSelected('scale', value)
+  }
+
+  function handleScaleCommit(value: number) {
     posthog.capture('control_changed', {
       control: 'scale',
       value,
@@ -51,6 +54,9 @@ function App() {
   function handleOutlineWidthChange(value: number) {
     setOutlineWidth(value)
     applyToSelected('outlineWidth', value)
+  }
+
+  function handleOutlineWidthCommit(value: number) {
     posthog.capture('control_changed', {
       control: 'outline_width',
       value,
@@ -60,6 +66,9 @@ function App() {
   function handleOutlineColorChange(value: string) {
     setOutlineColor(value)
     applyToSelected('outlineColor', value)
+  }
+
+  function handleOutlineColorCommit(value: string) {
     posthog.capture('control_changed', {
       control: 'outline_color',
       value,
@@ -99,6 +108,14 @@ function App() {
     setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: false })))
     posthog.capture('control_clicked', {
       control: 'unselect_all',
+    })
+  }
+
+  function handleSelectSingle(id: string) {
+    setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: ti.id === id })))
+    posthog.capture('control_clicked', {
+      control: 'select_single',
+      token_id: id,
     })
   }
 
@@ -201,10 +218,10 @@ function App() {
     <div className="editor">
       <div className="controls">
         <div className="settings">
-          <Scale value={scale} onChange={handleScaleChange} />
+          <Scale value={scale} onChange={handleScaleChange} onCommit={handleScaleCommit} />
           <XYPad onChange={handleGlobalOffsetChange} />
-          <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} />
-          <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} />
+          <OutlineWidth value={outlineWidth} onChange={handleOutlineWidthChange} onCommit={handleOutlineWidthCommit} />
+          <OutlineColor value={outlineColor} onChange={handleOutlineColorChange} onCommit={handleOutlineColorCommit} />
         </div>
         <div className="actions">
           <button onClick={handleSelectAll}>Select all</button>
@@ -219,6 +236,7 @@ function App() {
             ref={editorRefs[tokenImage.id]}
             tokenImage={tokenImage}
             onToggleSelect={() => handleToggleSelect(tokenImage.id)}
+            onClick={() => handleSelectSingle(tokenImage.id)}
             onOffsetChange={newOffset => handleOffsetChange(tokenImage.id, newOffset)}
           />
         ))}

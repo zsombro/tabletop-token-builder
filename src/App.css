@@ -181,6 +181,11 @@
   box-sizing: border-box;
 }
 
+.editor-card:hover {
+  background-color: #575757;
+  cursor: pointer;
+}
+
 .editor-card-add-more {
   width: calc(280px / 2 + 1rem);
   height: calc(280px / 2 + 4px + 2.7rem);
