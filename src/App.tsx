@@ -111,14 +111,6 @@ function App() {
     })
   }
 
-  function handleSelectSingle(id: string) {
-    setTokenImages(prev => prev && prev.map(ti => ({ ...ti, selected: ti.id === id })))
-    posthog.capture('control_clicked', {
-      control: 'select_single',
-      token_id: id,
-    })
-  }
-
   const [editorRefs, setEditorRefs] = useState<Record<string, React.RefObject<EditorHandle | null>>>({})
 
   function addEditorRefs(images: TokenImage[]) {
@@ -236,7 +228,6 @@ function App() {
             ref={editorRefs[tokenImage.id]}
             tokenImage={tokenImage}
             onToggleSelect={() => handleToggleSelect(tokenImage.id)}
-            onClick={() => handleSelectSingle(tokenImage.id)}
             onOffsetChange={newOffset => handleOffsetChange(tokenImage.id, newOffset)}
           />
         ))}

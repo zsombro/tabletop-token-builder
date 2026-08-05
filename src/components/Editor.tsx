@@ -9,11 +9,10 @@ export type EditorProps = {
   tokenImage: TokenImage
   onToggleSelect: () => void
   onOffsetChange: (offset: { x: number; y: number }) => void
-  onClick?: () => void
   ref?: React.Ref<EditorHandle | null>
 }
 
-export function Editor({ tokenImage, onToggleSelect, onOffsetChange, onClick, ref }: EditorProps) {
+export function Editor({ tokenImage, onToggleSelect, onOffsetChange, ref }: EditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [dragging, setDragging] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
