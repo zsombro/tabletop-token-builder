@@ -54,7 +54,7 @@ export function Editor({ tokenImage, onToggleSelect, onOffsetChange, onClick, re
   }
 
   return (
-    <div className="editor-card" onClick={e => { e.stopPropagation(); onClick?.() }}>
+    <div className="editor-card">
       <div className="editor-card-header">
         <label className="editor-card-checkbox">
           <input type="checkbox" checked={tokenImage.selected} onChange={(e) => {e.stopPropagation();onToggleSelect()}} />
