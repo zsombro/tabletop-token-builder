@@ -82,7 +82,7 @@ export function OutlineWidth({ value, onChange, onCommit }: NumberControlProps) 
 }
 
 export function OutlineColor({ value, onChange, onCommit }: ColorControlProps) {
-    const handleCommit = (e: React.FormEvent<HTMLInputElement>) => {
+    const handleCommit = (e: React.FocusEvent<HTMLInputElement>) => {
         if (!onCommit) return
         onCommit(e.currentTarget.value)
     }
@@ -92,8 +92,8 @@ export function OutlineColor({ value, onChange, onCommit }: ColorControlProps) {
             <input
                 type="color"
                 value={value}
-                onInput={(e) => onChange((e.target as HTMLInputElement).value)}
-                onChange={handleCommit}
+                onInput={(e) => onChange(e.currentTarget.value)}
+                onBlur={handleCommit}
             />
         </Control>
     )
